@@ -8,8 +8,10 @@ import helpers
 
 
 def cost_by_department_barchart(entries):
+    # entries have the following shape
+    # (title, section, department, economic_impact as cost, htm_url, pdf_url)
     costs = {}
-    for title, department, cost, *_ in entries:
+    for title, section, department, cost, *_ in entries:
         if cost > 0:
             costs[department] = costs.setdefault(department, 0) + cost
 
