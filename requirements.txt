@@ -1,0 +1,5 @@
+pymysql
+mysql-connector-python
+dash==1.19.0
+
+pandas
