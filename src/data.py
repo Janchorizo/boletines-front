@@ -49,7 +49,7 @@ def get_entries(host, user, password, database, date):
     q = f'''select title, department, economic_impact as cost, htm_url, pdf_url
             from boe_diary_entry
             where date = '{date:%Y-%m-%d}';'''
-    print(q)
+
     entries = execute_query(host, user, password, database, q)
     return entries
 
