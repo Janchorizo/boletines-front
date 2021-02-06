@@ -8,21 +8,26 @@ import dash_html_components as html
 # Internal
 from views.title import title
 from views.about import about
+from views.app_description import app_description
+from views.datepicker import datepicker
+from views.datepicker import output_id as date_output_id
 import data
 
 
 locale.setlocale(locale.LC_ALL,"")
 
 
-def layout():
+def layout(date_range):
     layout = html.Div(className='container-fluid flex-column d-flex', style={'height': '100vh'}, children=[
         html.Div(className='row', children=[
             title(),
         ]),
         html.Div(className='row fs-4 flex-grow-1', children=[
             html.Div(id='sidebar', className='col p-0 border-end justify-content-end d-flex flex-column', children=[
-                html.Div(id='sidebar-top', className='p-5 flex-fill', children=[]
-                ),
+                html.Div(id='sidebar-top', className='p-5 flex-fill', children=[
+                    app_description(),
+                    datepicker(date_range)
+                ]),
                 html.Div(id='sidebar-bottom', className='p-5 bg-light bg-gradient border-top', children=[
                     about()
                 ])
@@ -46,9 +51,11 @@ def set_callbacks(app, call_with_db:Callable):
 
 
 def main(call_with_db:Callable):
+    date_range = call_with_db(data.get_date_range)
+
     external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
     app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
-    app.layout = layout()
+    app.layout = layout(date_range)
     set_callbacks(app, call_with_db)
     app.run_server(debug=True)
 
