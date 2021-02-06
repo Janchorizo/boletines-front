@@ -13,6 +13,7 @@ from views.app_description import app_description
 from views.datepicker import datepicker
 from views.datepicker import output_id as date_output_id
 from views.diary_overview import diary_overview
+from views.cost_by_department_barchart import cost_by_department_barchart
 import data
 
 
@@ -57,7 +58,10 @@ def set_callbacks(app, call_with_db:Callable):
     def update_entry_overview(input_value):
         date = datetime.date.fromisoformat(input_value)
         entries = call_with_db(data.get_entries, date=date)
-        return diary_overview(entries, date)
+        return [
+            diary_overview(entries, date),
+            cost_by_department_barchart(entries)
+        ]
 
 
 def main(call_with_db:Callable):
