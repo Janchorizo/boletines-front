@@ -46,7 +46,7 @@ def get_date_range(host, user, password, database):
 def get_entries(host, user, password, database, date):
     '''Get the title, department, cost, and links of the entries for a date.'''
     
-    q = f'''select title, department, economic_impact as cost, htm_url, pdf_url
+    q = f'''select title, section, department, economic_impact as cost, htm_url, pdf_url
             from boe_diary_entry
             where date = '{date:%Y-%m-%d}';'''
 
