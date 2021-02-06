@@ -5,6 +5,7 @@ from typing import Callable
 # External
 import dash
 from dash.dependencies import Input, Output
+import dash_core_components as dcc
 import dash_html_components as html
 # Internal
 from views.title import title
@@ -14,6 +15,8 @@ from views.datepicker import datepicker
 from views.datepicker import output_id as date_output_id
 from views.diary_overview import diary_overview
 from views.cost_by_department_barchart import cost_by_department_barchart
+from views.diary_entry_sankey import diary_entry_sankey
+from views.diary_entry_table import diary_entry_table
 import data
 
 
@@ -39,8 +42,13 @@ def layout(date_range):
                 html.Div(className='row h-100', children=[
                     html.Div(id='main-left', className='col', children=[]
                     ),
-                    html.Div(id='main-right', className='col shadow', children=[]
-                    )
+                    html.Div(id='main-right', className='col shadow p-0 d-flex flex-column', children=[
+                        dcc.Tabs(id='tabs', value='tab-2', children=[
+                            dcc.Tab(label='Entradas por sección y departamento', value='tab-1'),
+                            dcc.Tab(label='Lista de entradas', value='tab-2'),
+                        ]),
+                        html.Div(id='tabs-content', className='flex-grow-1')
+                    ])
                 ])
             ])
         ])
@@ -62,6 +70,21 @@ def set_callbacks(app, call_with_db:Callable):
             diary_overview(entries, date),
             cost_by_department_barchart(entries)
         ]
+
+    @app.callback(
+        Output('tabs-content', 'children'),
+        Input(component_id=date_output_id, component_property='date'),
+        Input('tabs', 'value')
+    )
+    def render_content(date_raw, tab):
+        date = datetime.date.fromisoformat(date_raw)
+        
+        if tab == 'tab-1':
+            entries = call_with_db(data.get_entries_by_department_for_date, date=date)
+            return diary_entry_sankey(entries)
+        elif tab == 'tab-2':
+            entries = call_with_db(data.get_entries, date=date)
+            return diary_entry_table(entries)
 
 
 def main(call_with_db:Callable):
