@@ -1,5 +1,6 @@
 '''Simple BOE data exploration.'''
 import locale
+import datetime
 from typing import Callable
 # External
 import dash
@@ -11,6 +12,7 @@ from views.about import about
 from views.app_description import app_description
 from views.datepicker import datepicker
 from views.datepicker import output_id as date_output_id
+from views.diary_overview import diary_overview
 import data
 
 
@@ -47,7 +49,15 @@ def layout(date_range):
 
 def set_callbacks(app, call_with_db:Callable):
     '''Set the callbacks.'''
-    pass
+    
+    @app.callback(
+        Output(component_id='main-left', component_property='children'),
+        Input(component_id=date_output_id, component_property='date'),
+    )
+    def update_entry_overview(input_value):
+        date = datetime.date.fromisoformat(input_value)
+        entries = call_with_db(data.get_entries, date=date)
+        return diary_overview(entries, date)
 
 
 def main(call_with_db:Callable):
