@@ -48,7 +48,7 @@ def diary_entry_table(entries):
         },
         columns=[
             *[
-                {"name": i, "id": i, "deletable": False, "selectable": True}
+                {"name": i, "id": i, "deletable": False, "selectable": False}
                 for i
                 in df.columns
                 if i not in ['id', 'Ver en el BOE', 'Título_', 'Departamento_']],
@@ -62,7 +62,7 @@ def diary_entry_table(entries):
         ],
         data=df.to_dict('records'),
         sort_action="native",
-        sort_mode="multi",
+        sort_mode="single",
         #page_action="native",
         #page_current= 0,
         page_size= 18,
