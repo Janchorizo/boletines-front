@@ -43,7 +43,7 @@ def layout(date_range):
                     html.Div(id='main-left', className='col', children=[]
                     ),
                     html.Div(id='main-right', className='col shadow p-0 d-flex flex-column', children=[
-                        dcc.Tabs(id='tabs', value='tab-2', children=[
+                        dcc.Tabs(id='tabs', value='tab-1', children=[
                             dcc.Tab(label='Entradas por sección y departamento', value='tab-1'),
                             dcc.Tab(label='Lista de entradas', value='tab-2'),
                         ]),
