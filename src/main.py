@@ -7,6 +7,7 @@ from dash.dependencies import Input, Output
 import dash_html_components as html
 # Internal
 from views.title import title
+from views.about import about
 import data
 
 
@@ -22,8 +23,9 @@ def layout():
             html.Div(id='sidebar', className='col p-0 border-end justify-content-end d-flex flex-column', children=[
                 html.Div(id='sidebar-top', className='p-5 flex-fill', children=[]
                 ),
-                html.Div(id='sidebar-bottom', className='p-5 bg-light bg-gradient border-top', children=[]
-                )
+                html.Div(id='sidebar-bottom', className='p-5 bg-light bg-gradient border-top', children=[
+                    about()
+                ])
             ]),
             html.Div(className='col-9 bg-light border-top', children=[
                 html.Div(className='row h-100', children=[
