@@ -1,0 +1,3 @@
+@-moz-document url-prefix() {
+  table p{font-size: .875em !important;}
+}
