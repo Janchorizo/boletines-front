@@ -2,6 +2,7 @@
 import collections
 # External
 import pandas as pd
+import dash_html_components as html
 import dash_core_components as dcc
 import plotly.graph_objects as go
 import dash_table
@@ -28,7 +29,7 @@ def diary_entry_table(entries):
     data = (
         (
             title,
-            helpers.shorttened(title, 30),
+            f'{helpers.shorttened(title, 150)}',#\n\nCoste económico de {cost}',
             department,
             helpers.shorttened(department, 30),
             cost,
@@ -36,23 +37,24 @@ def diary_entry_table(entries):
         )
         for title, section, department, cost, htm_url, pdf_url
         in entries
+        if section.lower() != '4'
     )
     df = pd.DataFrame(data, columns=('Título_', 'Título', 'Departamento_', 'Departamento', 'Coste', 'Ver en el BOE'))
-    content = dash_table.DataTable(
+
+    table = dash_table.DataTable(
         id='datatable-interactivity',
+        data=df.to_dict('records'),
         style_as_list_view=True,
-        style_cell={'padding': '5px'},
         style_header={
             'backgroundColor': 'white',
             'fontWeight': 'bold'
         },
         columns=[
             *[
-                {"name": i, "id": i, "deletable": False, "selectable": False}
+                {"name": i, "id": i, "deletable": False, "selectable": False, 'presentation':'markdown'}
                 for i
                 in df.columns
-                if i not in ['id', 'Ver en el BOE', 'Título_', 'Departamento_']],
-            {"name": 'Ver en el BOE', "id": 'Ver en el BOE', "deletable": False, "selectable": True, 'presentation':'markdown'}
+                if i not in ['id', 'Título_', 'Departamento_', 'Coste']],
         ],
         tooltip_data=[
             {
@@ -60,11 +62,29 @@ def diary_entry_table(entries):
                 for column, value in row.items()
             } for row in df.to_dict('records')
         ],
-        data=df.to_dict('records'),
+        style_cell={
+            'whiteSpace': 'normal',
+            'height': 'auto',
+            'padding': '5px',
+        },
+        style_cell_conditional=[
+            {'if': {'column_id': 'Ver en el BOE'}, 'width': '120px'},
+            {'if': {'column_id': 'Departamento'}, 'width': '180px'},
+        ],
         sort_action="native",
         sort_mode="single",
-        #page_action="native",
-        #page_current= 0,
-        page_size= 18,
+        tooltip_delay=0,
+        tooltip_duration=None,
+        page_action="native",
+        page_current= 0,
+        page_size= 8,
     )
+
+    content = html.Div(children=[
+        dcc.Markdown(className='p-2', children=(f'Se han *omitido {len(entries) - len(df)}* entradas'
+            ' de la administración de justicia (autos judiciales) que puedes ver el BOE original, para facilitar la lectura.')),
+        table
+    ])
+
     return content
+
