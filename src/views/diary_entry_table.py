@@ -28,9 +28,9 @@ def diary_entry_table(entries):
     data = (
         (
             title,
-            helpers.shorttened(title, 30),
+            helpers.shorttened(title, 32),
             department,
-            helpers.shorttened(department, 30),
+            helpers.shorttened(department, 15),
             cost,
             f"[{htm_url.split('=')[1]}]({'https://boe.es'+htm_url})"
         )
@@ -65,6 +65,6 @@ def diary_entry_table(entries):
         sort_mode="single",
         #page_action="native",
         #page_current= 0,
-        page_size= 18,
+        page_size= 16,
     )
     return content
