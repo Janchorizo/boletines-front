@@ -3,26 +3,17 @@ import locale
 # External
 import dash_core_components as dcc
 import plotly.express as px
-# Internal
-import helpers
 
 
-def cost_by_department_barchart(entries):
-    # entries have the following shape
-    # (title, section, department, economic_impact as cost, htm_url, pdf_url)
-    costs = {}
-    for title, section, department, cost, *_ in entries:
-        if cost > 0:
-            costs[department] = costs.setdefault(department, 0) + cost
-
+def cost_by_department_barchart(data):
     barchart = px.bar(
-        x = tuple(costs.values()),
-        y = tuple(helpers.shorttened(x) for x in costs.keys()),
-        text = tuple(locale.currency(x, grouping=True) for x in costs.values()),
-        hover_name = tuple(costs.keys()),
+        x = data['x'],
+        y = data['y'],
+        text = data['text'],
+        hover_name = data['hover_name'],
         orientation = 'h',
         labels={'x':'Gasto económico', 'y':''},
-        height=len(costs)*30
+        height=data['non_null_count']*30
     )
 
     barchart.update_layout(
