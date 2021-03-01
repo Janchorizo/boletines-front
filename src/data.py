@@ -1,4 +1,5 @@
 '''Utility functions for interacting with the database.'''
+import datetime
 import collections
 import functools
 
@@ -8,7 +9,7 @@ from pymongo import MongoClient
 
 def create_db_wrapper(**extraargs):
     def caller(f, *args, **kwargs):
-        return functools.partial(d, **extraargs)(*args, **kwargs)
+        return functools.partial(f, **extraargs)(*args, **kwargs)
     return caller
 
 def execute_query(host, user, password, database, query) -> None:
@@ -55,22 +56,20 @@ def get_diary_summary(dburi, dbname, date):
     collection = 'diary_summary'
     client = MongoClient(dburi)
     db = client[dbname]
-    cursor = db[collection].findOne({'date': f'{date:%Y-%m-%d}'})
+    data = db[collection].find_one({'date': f'{date:%Y-%m-%d}'})
     
-    data = next(cursor)
     client.close()
 
     return data
 
 def get_viz_data(dburi, dbname, date):
     '''Get minimum and maximum dates in the database.'''
-    
+
     collection = 'dash_data'
     client = MongoClient(dburi)
     db = client[dbname]
-    cursor = db[collection].findOne({'date': f'{date:%Y-%m-%d}'})
+    data = db[collection].find_one({'date': f'{date:%Y-%m-%d}'})
     
-    data = next(cursor)
     client.close()
 
     return data
