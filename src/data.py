@@ -2,6 +2,8 @@
 import collections
 
 import pymysql
+import pymongo
+from pymongo import MongoClient
 
 def create_db_wrapper(db_host, db_database, db_user, db_password):
     def caller(f, *args, **kwargs):
@@ -35,13 +37,49 @@ def execute_query(host, user, password, database, query) -> None:
         connection.commit()
     return r
 
-def get_date_range(host, user, password, database):
+def get_date_range(dburi, dbname):
     '''Get minimum and maximum dates in the database.'''
     
-    q = 'select min(date) as start, max(date) as end from boe_diary_entry;'
-    start, end = execute_query(host, user, password, database, q)[0] # just one query is excuted
-    return start, end
+    collection = 'diary_summary'
+    client = MongoClient(dburi)
+    db = client[dbname]
+    cursor = db[collection].aggregate([
+        {'$group': {'_id': '', 'max': {'$max': '$date'}, 'min': {'$min': '$date'}}}
+    ])
+    
+    date_range = next(cursor)
+    client.close()
 
+    first_date = datetime.datetime(*map(int, date_range['min'].split('-')))
+    last_date = datetime.datetime(*map(int, date_range['max'].split('-')))
+
+    return first_date, last_date
+
+def get_diary_summary(dburi, dbname, date):
+    '''Get minimum and maximum dates in the database.'''
+    
+    collection = 'diary_summary'
+    client = MongoClient(dburi)
+    db = client[dbname]
+    cursor = db[collection].findOne({'date': f'{date:%Y-%m-%d}'})
+    
+    data = next(cursor)
+    client.close()
+
+    return data
+
+def get_viz_data(dburi, dbname, date):
+    '''Get minimum and maximum dates in the database.'''
+    
+    collection = 'dash_data'
+    client = MongoClient(dburi)
+    db = client[dbname]
+    cursor = db[collection].findOne({'date': f'{date:%Y-%m-%d}'})
+    
+    data = next(cursor)
+    client.close()
+
+    return data
 
 def get_entries(host, user, password, database, date):
     '''Get the title, department, cost, and links of the entries for a date.'''
@@ -52,43 +90,3 @@ def get_entries(host, user, password, database, date):
 
     entries = execute_query(host, user, password, database, q)
     return entries
-
-
-def get_entries_by_department_for_date(host, user, password, database, date):
-    '''Get the count of entries per department and section, for a specific date.'''
-    
-    q = f'''select boe_diary_section.name, department, count(department) as count
-            from boe_diary_entry, boe_diary_section
-            where boe_diary_section.id = boe_diary_entry.section and boe_diary_entry.date = '{date:%Y-%m-%d}'
-            group by department;
-    '''
-
-    data = execute_query(host, user, password, database, q)
-    return data
-
-
-def get_entry_types(entries):
-    def get_type(entry):
-        title, *_ = entry
-        type_ = ''
-        if title.lower().startswith('anuncio de licitación'):
-            type_ = 'un anuncio de licitación'
-        elif title.lower().startswith('ley'):
-            type_ = 'una ley'
-        elif title.lower().startswith('anuncio de formalización de contratos'):
-            type_ = ' un anuncio de formalización de contratos'
-        elif 'resuelve' in title.lower() and 'convocatoria' in title.lower():
-            type_ = 'una resolución de convocatoria'
-        elif 'convocatoria' in title.lower():
-            type_ = 'una convocatoria'
-        elif 'jubilación' in title.lower():
-            type_ = 'una jubilación'
-        elif 'cese' in title.lower():
-            type_ = 'un cese'
-        elif 'nombra' in title.lower():
-            type_ = 'nobramiento de cargo'
-        return type_
-
-    types = collections.Counter(map(get_type, entries))
-    return types
-
