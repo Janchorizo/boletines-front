@@ -7,7 +7,7 @@ import dash_core_components as dcc
 
 
 mkd = f'''### Acerca de
-Hola! Me puedes llamar [Janchorizo](https://github.com/Janchorizo). Hice esta página con mucho ♥ como parte
+Hola! Me puedes llamar [Janchorizo](https://janchorizo.github.io). Hice esta página con mucho ♥ como parte
 de un proyecto más grande para facilitar el uso del BOE.
 
 Mantener los servidores cuesta dinero y, aunque lo hago de forma desinteresada, agradezco
