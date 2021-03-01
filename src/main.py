@@ -56,7 +56,7 @@ def layout(date_range):
     return layout
 
 
-def set_callbacks(app, call_with_db:Callable):
+def set_callbacks(app, call_with_mysql_db:Callable, call_with_mongo_db:Callable):
     '''Set the callbacks.'''
     
     @app.callback(
@@ -65,10 +65,11 @@ def set_callbacks(app, call_with_db:Callable):
     )
     def update_entry_overview(input_value):
         date = datetime.date.fromisoformat(input_value)
-        entries = call_with_db(data.get_entries, date=date)
+        overview = call_with_mongo_db(data.get_diary_summary, date=date)
+        data = call_with_mongo_db(data.get_viz_data, date=date)
         return [
-            diary_overview(entries, date),
-            cost_by_department_barchart(entries)
+            diary_overview(overview, date),
+            cost_by_department_barchart(data['barchart'])
         ]
 
     @app.callback(
@@ -80,29 +81,41 @@ def set_callbacks(app, call_with_db:Callable):
         date = datetime.date.fromisoformat(date_raw)
         
         if tab == 'tab-1':
-            entries = call_with_db(data.get_entries_by_department_for_date, date=date)
-            return diary_entry_sankey(entries)
+            data = call_with_mongo_db(data.get_viz_data, date=date)
+            return diary_entry_sankey(data['sankey'])
         elif tab == 'tab-2':
-            entries = call_with_db(data.get_entries, date=date)
+            entries = call_with_mysql_db(data.get_entries, date=date)
             return diary_entry_table(entries)
 
 
-def main(call_with_db:Callable):
-    date_range = call_with_db(data.get_date_range)
+def main(call_with_mysql_db:Callable, call_with_mongo_db:Callable):
+    date_range = call_with_mongo_db(data.get_date_range, date=date)
 
     external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
     app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
     app.layout = layout(date_range)
-    set_callbacks(app, call_with_db)
+    set_callbacks(app, call_with_mysql_db, call_with_mongo_db)
     app.run_server(debug=True)
 
 
 if __name__ == '__main__':
-    db_host = 'localhost'
-    db_database = 'boe'
-    db_user = 'root'
-    db_password = 'pass'
+    mysql_db_host = 'localhost'
+    mysql_db_database = 'boe'
+    mysql_db_user = 'root'
+    mysql_db_password = 'pass'
+    mongo_db_uri = ''
+    mongo_db_database = 'boe'
 
-    call_with_db = data.create_db_wrapper(db_host, db_database, db_user, db_password)
-    main(call_with_db)
+    call_with_mysql_db = data.create_db_wrapper({
+        'host': mysql_db_host,
+        'database': mysql_db_database,
+        'user': mysql_db_user,
+        'password': mysql_db_password
+    })
 
+    call_with_mongo_db = data.create_db_wrapper({
+        'dburi': mongo_db_uri,
+        'dbname': mongo_db_database,
+    })
+
+    main(call_with_mysql_db, call_with_mongo_db)

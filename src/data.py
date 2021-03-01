@@ -1,20 +1,14 @@
 '''Utility functions for interacting with the database.'''
 import collections
+import functools
 
 import pymysql
 import pymongo
 from pymongo import MongoClient
 
-def create_db_wrapper(db_host, db_database, db_user, db_password):
+def create_db_wrapper(**extraargs):
     def caller(f, *args, **kwargs):
-        keyword_args = dict(kwargs)
-        keyword_args.update({
-            'host': db_host,
-            'database': db_database,
-            'user': db_user,
-            'password': db_password
-        })
-        return f(*args, **keyword_args)
+        return functools.partial(d, **extraargs)(*args, **kwargs)
     return caller
 
 def execute_query(host, user, password, database, query) -> None:
