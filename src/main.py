@@ -64,12 +64,12 @@ def set_callbacks(app, call_with_mysql_db:Callable, call_with_mongo_db:Callable)
         Input(component_id=date_output_id, component_property='date'),
     )
     def update_entry_overview(input_value):
-        date = datetime.date.fromisoformat(input_value)
+        date = datetime.date.fromisoformat(input_value[:10])
         overview = call_with_mongo_db(data.get_diary_summary, date=date)
-        data = call_with_mongo_db(data.get_viz_data, date=date)
+        viz_data = call_with_mongo_db(data.get_viz_data, date=date)
         return [
             diary_overview(overview, date),
-            cost_by_department_barchart(data['barchart'])
+            cost_by_department_barchart(viz_data['barchart'])
         ]
 
     @app.callback(
@@ -78,18 +78,18 @@ def set_callbacks(app, call_with_mysql_db:Callable, call_with_mongo_db:Callable)
         Input('tabs', 'value')
     )
     def render_content(date_raw, tab):
-        date = datetime.date.fromisoformat(date_raw)
+        date = datetime.date.fromisoformat(date_raw[:10])
         
         if tab == 'tab-1':
-            data = call_with_mongo_db(data.get_viz_data, date=date)
-            return diary_entry_sankey(data['sankey'])
+            viz_data = call_with_mongo_db(data.get_viz_data, date=date)
+            return diary_entry_sankey(viz_data['sankey'])
         elif tab == 'tab-2':
             entries = call_with_mysql_db(data.get_entries, date=date)
             return diary_entry_table(entries)
 
 
 def main(call_with_mysql_db:Callable, call_with_mongo_db:Callable):
-    date_range = call_with_mongo_db(data.get_date_range, date=date)
+    date_range = call_with_mongo_db(data.get_date_range)
 
     external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
     app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
@@ -106,14 +106,14 @@ if __name__ == '__main__':
     mongo_db_uri = ''
     mongo_db_database = 'boe'
 
-    call_with_mysql_db = data.create_db_wrapper({
+    call_with_mysql_db = data.create_db_wrapper(**{
         'host': mysql_db_host,
         'database': mysql_db_database,
         'user': mysql_db_user,
         'password': mysql_db_password
     })
 
-    call_with_mongo_db = data.create_db_wrapper({
+    call_with_mongo_db = data.create_db_wrapper(**{
         'dburi': mongo_db_uri,
         'dbname': mongo_db_database,
     })
