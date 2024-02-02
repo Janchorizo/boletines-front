@@ -1,5 +1,5 @@
 pymysql
 mysql-connector-python
-dash==1.19.0
+dash==2.15.0
 
 pandas
